@@ -64,7 +64,7 @@ class EBook(object):
                     return ''
                 page = self.pages[num]
                 html = page['ITEM_DOCUMENT'].get_content()[page['start']:page['end']].decode()
-                plain_text = BeautifulSoup(html).get_text()
+                plain_text = BeautifulSoup(html).get_text('\n\t')
                 if not plain_text.strip():
                     num += 1
                 else:
