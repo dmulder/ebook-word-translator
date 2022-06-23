@@ -69,9 +69,19 @@ class EBook(object):
                     num += 1
                 else:
                     break
+            self.page_num = num
             return plain_text
         else:
             raise NotImplementedError('Unable to read page')
+
+    def next_page(self):
+        return self.page(self.page_num+1)
+
+    def prev_page(self):
+        return self.page(self.page_num-1)
+
+    def current_page(self):
+        return self.page_num
 
 class TextViewWindow(Gtk.Window):
     def __init__(self):
@@ -98,6 +108,37 @@ class TextViewWindow(Gtk.Window):
 
         toolbar.insert(Gtk.SeparatorToolItem(), 1)
 
+        self.page_left = Gtk.ToolButton()
+        self.page_left.set_icon_name("edit-redo-rtl-symbolic")
+        toolbar.insert(self.page_left, 2)
+
+        self.page_left.connect("clicked", self.prev_page)
+
+        self.page_number = Gtk.Entry()
+        self.page_number.set_editable(False)
+        self.page_number.set_max_width_chars(4)
+        self.page_number.set_width_chars(4)
+        item = Gtk.ToolItem()
+        item.add(self.page_number)
+        toolbar.insert(item, 3)
+
+        self.page_right = Gtk.ToolButton()
+        self.page_right.set_icon_name("edit-undo-rtl-symbolic")
+        toolbar.insert(self.page_right, 4)
+
+        self.page_right.connect("clicked", self.next_page)
+
+    def prev_page(self, arg):
+        self.textbuffer.set_text(self.ebook.prev_page())
+        self.set_page_visible()
+
+    def next_page(self, arg):
+        self.textbuffer.set_text(self.ebook.next_page())
+        self.set_page_visible()
+
+    def set_page_visible(self):
+        self.page_number.set_text(str(self.ebook.current_page()))
+
     def on_button_open(self, arg):
         file_chooser = Gtk.FileChooserDialog(title='Choose an ebook', parent=self,
                                              action=Gtk.FileChooserAction.OPEN)
@@ -109,6 +150,7 @@ class TextViewWindow(Gtk.Window):
             try:
                 self.ebook = EBook(file_path)
                 self.textbuffer.set_text(self.ebook.page(0))
+                self.set_page_visible()
             except NotImplementedError as e:
                 err = Gtk.MessageDialog(
                     transient_for=self,
