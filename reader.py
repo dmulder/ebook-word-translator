@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
+from googletrans import Translator
 
 class EBook(object):
     def __init__(self, filename):
@@ -132,7 +133,22 @@ class TextViewWindow(Gtk.Window):
         self.textview.set_editable(False)
         self.textview.set_cursor_visible(False)
         self.textview.set_wrap_mode(Gtk.WrapMode.WORD)
+        self.textview.connect("populate-popup", self.on_context_menu)
         scrolledwindow.add(self.textview)
+
+    def on_context_menu(self, textview, menu):
+        if type(menu) == Gtk.Menu:
+            translate_item = Gtk.MenuItem(label="Translate")
+            translate_item.connect("activate", self.translate_word)
+            menu.insert(translate_item, 0)
+            menu.show_all()
+
+    def translate_word(self, translate_item):
+        start, end = self.textbuffer.get_selection_bounds()
+        text = self.textbuffer.get_slice(start, end, False)
+        translator = Translator()
+        translation = translator.translate(text, src='de')
+        print(translation.text)
 
 win = TextViewWindow()
 win.connect("destroy", Gtk.main_quit)
