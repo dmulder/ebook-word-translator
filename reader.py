@@ -203,22 +203,23 @@ class TextViewWindow(Gtk.Window):
     def on_context_menu(self, textview, menu):
         if type(menu) == Gtk.Menu:
             translate_item = Gtk.MenuItem(label="Translate")
-            translate_item.connect("activate", self.translate_word)
+            translate_item.connect("activate", self.translate_selection)
             menu.insert(translate_item, 0)
             menu.show_all()
 
     def translate_word_click(self, textview, event_button):
-        pos_itr = self.textbuffer.get_iter_at_mark(self.textbuffer.get_insert())
-        start_itr = pos_itr.copy()
-        start_itr.backward_visible_word_start()
-        end_itr = pos_itr.copy()
-        end_itr.forward_visible_word_end()
-        word = self.textbuffer.get_text(start_itr, end_itr, False)
-        translator = Translator()
-        translation = translator.translate(word, src='de')
-        print(translation.text)
+        if event_button.button == 1:
+            pos_itr = self.textbuffer.get_iter_at_mark(self.textbuffer.get_insert())
+            start_itr = pos_itr.copy()
+            start_itr.backward_visible_word_start()
+            end_itr = pos_itr.copy()
+            end_itr.forward_visible_word_end()
+            word = self.textbuffer.get_text(start_itr, end_itr, False)
+            translator = Translator()
+            translation = translator.translate(word, src='de')
+            print(translation.text)
 
-    def translate_word(self, translate_item):
+    def translate_selection(self, translate_item):
         start, end = self.textbuffer.get_selection_bounds()
         text = self.textbuffer.get_slice(start, end, False)
         translator = Translator()
