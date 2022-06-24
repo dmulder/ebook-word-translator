@@ -89,6 +89,7 @@ class TextViewWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="EBook Word Translator")
         self.ebook = None
+        self.popup = None
 
         self.set_default_size(700, 700)
 
@@ -208,13 +209,20 @@ class TextViewWindow(Gtk.Window):
             menu.show_all()
 
     def popup_text(self, text):
-        popup = Gtk.Menu()
+        self.popup = Gtk.Menu()
         item = Gtk.MenuItem(label=text)
-        popup.insert(item, 0)
-        popup.show_all()
-        popup.popup_at_pointer()
+        self.popup.insert(item, 0)
+        self.popup.show_all()
+        self.popup.popup_at_pointer()
 
     def translate_word_click(self, textview, event_button):
+        # Ignore translation if we're clicking away from an existing popup
+        if self.popup != None:
+            self.popup = None
+            return
+        # Ignore word translation if there is selected text (fallback to translate_selection())
+        if self.textbuffer.get_has_selection():
+            return
         if event_button.button == 1:
             pos_itr = self.textbuffer.get_iter_at_mark(self.textbuffer.get_insert())
             start_itr = pos_itr.copy()
