@@ -128,6 +128,17 @@ class TextViewWindow(Gtk.Window):
 
         self.page_right.connect("clicked", self.next_page)
 
+        settings = Gtk.FontButton()
+        item = Gtk.ToolItem()
+        item.add(settings)
+        toolbar.insert(item, 5)
+
+        settings.connect("font-set", self.text_settings)
+
+    def text_settings(self, widget):
+        font = widget.get_font_desc()
+        self.textview.override_font(font)
+
     def prev_page(self, arg):
         self.textbuffer.set_text(self.ebook.prev_page())
         self.set_page_visible()
