@@ -207,6 +207,13 @@ class TextViewWindow(Gtk.Window):
             menu.insert(translate_item, 0)
             menu.show_all()
 
+    def popup_text(self, text):
+        popup = Gtk.Menu()
+        item = Gtk.MenuItem(label=text)
+        popup.insert(item, 0)
+        popup.show_all()
+        popup.popup_at_pointer()
+
     def translate_word_click(self, textview, event_button):
         if event_button.button == 1:
             pos_itr = self.textbuffer.get_iter_at_mark(self.textbuffer.get_insert())
@@ -217,14 +224,14 @@ class TextViewWindow(Gtk.Window):
             word = self.textbuffer.get_text(start_itr, end_itr, False)
             translator = Translator()
             translation = translator.translate(word, src='de')
-            print(translation.text)
+            self.popup_text(translation.text)
 
     def translate_selection(self, translate_item):
         start, end = self.textbuffer.get_selection_bounds()
         text = self.textbuffer.get_slice(start, end, False)
         translator = Translator()
         translation = translator.translate(text, src='de')
-        print(translation.text)
+        self.popup_text(translation.text)
 
 win = TextViewWindow()
 win.connect("destroy", Gtk.main_quit)
