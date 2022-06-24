@@ -19,14 +19,12 @@ class EBook(object):
         page = 1
         self.pages = {}
         for item in self.book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
-            spans = [i for i in re.finditer(b'<span[^>]+/>', item.get_content())]
+            spans = [i for i in re.finditer(b'<span[^>]+>', item.get_content())]
             for i in range(len(spans)):
                 s = spans[i]
                 n = spans[i+1].span() if i+1 < len(spans) else (-1, 0)
                 start, end = s.span()
                 s_text = s.string[start:end]
-                if b'pagebreak' not in s_text:
-                    continue
                 title = re.findall(b'title=["\'](\d+)["\']', s_text)
                 sid = re.findall(b'id=["\'](\d+)["\']', s_text)
                 if len(sid) == 1:
@@ -61,7 +59,11 @@ class EBook(object):
         elif type(self.book) == epub.EpubBook:
             while True:
                 if num not in self.pages.keys():
-                    return ''
+                    n_num = sorted(self.pages.keys())[0]
+                    if num < n_num:
+                        num = n_num
+                    else:
+                        return ''
                 page = self.pages[num]
                 html = page['ITEM_DOCUMENT'].get_content()[page['start']:page['end']].decode()
                 plain_text = BeautifulSoup(html).get_text('\n\t')
