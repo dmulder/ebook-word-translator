@@ -2,7 +2,7 @@
 import gi
 import ebooklib
 from ebooklib import epub
-import os.path
+import os
 import re
 from bs4 import BeautifulSoup
 
@@ -128,10 +128,12 @@ class TextViewWindow(Gtk.Window):
 
         self.page_right.connect("clicked", self.next_page)
 
+        toolbar.insert(Gtk.SeparatorToolItem(), 5)
+
         settings = Gtk.FontButton()
         item = Gtk.ToolItem()
         item.add(settings)
-        toolbar.insert(item, 5)
+        toolbar.insert(item, 6)
 
         settings.connect("font-set", self.text_settings)
 
