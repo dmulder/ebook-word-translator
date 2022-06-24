@@ -198,7 +198,7 @@ class TextViewWindow(Gtk.Window):
         self.textview.connect("populate-popup", self.on_context_menu)
         scrolledwindow.add(self.textview)
 
-        self.textview.connect("button-press-event", self.translate_word_click)
+        self.textview.connect("button_release_event", self.translate_word_click)
 
     def on_context_menu(self, textview, menu):
         if type(menu) == Gtk.Menu:
