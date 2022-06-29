@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
-from googletrans import Translator
+import translators as ts
 from epr import epr
 
 class EBook(object):
@@ -201,16 +201,12 @@ class TextViewWindow(Gtk.Window):
             end_itr = pos_itr.copy()
             end_itr.forward_visible_word_end()
             word = self.textbuffer.get_text(start_itr, end_itr, False)
-            translator = Translator()
-            translation = translator.translate(word, src='de')
-            self.popup_text(translation.text)
+            self.popup_text(ts.google(word, from_language='de'))
 
     def translate_selection(self, translate_item):
         start, end = self.textbuffer.get_selection_bounds()
         text = self.textbuffer.get_slice(start, end, False)
-        translator = Translator()
-        translation = translator.translate(text, src='de')
-        self.popup_text(translation.text)
+        self.popup_text(ts.google(text, from_language='de'))
 
 win = TextViewWindow()
 win.connect("destroy", Gtk.main_quit)
