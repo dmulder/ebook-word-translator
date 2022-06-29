@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 import gi
-import ebooklib
-from ebooklib import epub
 import os
 import re
 from bs4 import BeautifulSoup
@@ -9,41 +7,19 @@ from bs4 import BeautifulSoup
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from googletrans import Translator
+from epr import epr
 
 class EBook(object):
     def __init__(self, filename):
         self.filename = filename
         self.__load_book()
 
-    def __parse_epub_pages(self):
-        page = 1
-        self.pages = {}
-        for item in self.book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
-            spans = [i for i in re.finditer(b'<span[^>]+>', item.get_content())]
-            for i in range(len(spans)):
-                s = spans[i]
-                n = spans[i+1].span() if i+1 < len(spans) else (-1, 0)
-                start, end = s.span()
-                s_text = s.string[start:end]
-                title = re.findall(b'title=["\'](\d+)["\']', s_text)
-                sid = re.findall(b'id=["\'](\d+)["\']', s_text)
-                if len(sid) == 1:
-                    page = int(sid[0])
-                elif len(title) == 1:
-                    page = int(title[0])
-                else: # If there is no obvious page number, just increment
-                    page += 1
-                self.pages[page] = {
-                    'ITEM_DOCUMENT': item,
-                    'start': end,
-                    'end': n[0]
-                }
 
     def __load_book(self):
         ext = os.path.splitext(self.filename)[-1]
         if ext == '.epub':
-            self.book = epub.read_epub(self.filename)
-            self.__parse_epub_pages()
+            self.book = epr.Epub(self.filename)
+            self.book.initialize()
         elif ext == '.txt' or ext == '':
             self.book = open(self.filename, 'r').read()
         else:
@@ -56,23 +32,18 @@ class EBook(object):
             book_len = len(self.book)
             loc = min(num*page_size, book_len)
             return self.book[loc:min(loc+page_size, book_len)]
-        elif type(self.book) == epub.EpubBook:
-            while True:
-                if num not in self.pages.keys():
-                    n_num = sorted(self.pages.keys())[0]
-                    if num < n_num:
-                        num = n_num
-                    else:
-                        return ''
-                page = self.pages[num]
-                html = page['ITEM_DOCUMENT'].get_content()[page['start']:page['end']].decode()
-                plain_text = BeautifulSoup(html).get_text('\n\t')
-                if not plain_text.strip():
-                    num += 1
-                else:
-                    break
+        elif type(self.book) == epr.Epub:
             self.page_num = num
-            return plain_text
+            page = self.book.contents[num]
+            content = self.book.file.open(page).read().decode("utf-8")
+            parser = epr.HTMLtoLines()
+            try:
+                parser.feed(content)
+                parser.close()
+            except:
+                pass
+            src_lines = parser.get_lines()
+            return '\n'.join(src_lines)
         else:
             raise NotImplementedError('Unable to read page')
 
